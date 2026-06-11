@@ -26,38 +26,50 @@ interface ReconciliationResult {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const bankFile = formData.get('bankStatement') as File;
-    const ledgerFile = formData.get('ledgerSheet') as File;
+    const bankFiles = formData.getAll('bankStatements') as File[];
+    const ledgerFiles = formData.getAll('ledgerSheets') as File[];
 
-    if (!bankFile || !ledgerFile) {
-      return NextResponse.json({ error: 'Missing files' }, { status: 400 });
+    if (bankFiles.length === 0 && ledgerFiles.length === 0) {
+      return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
-    // 1. Parse PDF (Bank Statement)
-    const bankBuffer = Buffer.from(await bankFile.arrayBuffer());
-    // @ts-ignore - pdf-parse expects Buffer but typing mismatch in Next.js build env
-    const bankData = await pdf(bankBuffer);
-    const bankTransactions = parseThaiBankPDF(bankData.text);
+    const bankTransactions: Transaction[] = [];
+    const ledgerTransactions: Transaction[] = [];
 
-    // 2. Parse Excel (Ledger)
-    const ledgerBuffer = Buffer.from(await ledgerFile.arrayBuffer());
-    const workbook = XLSX.read(ledgerBuffer);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const ledgerRows = XLSX.utils.sheet_to_json(worksheet) as any[];
-    const ledgerTransactions = parseLedgerExcel(ledgerRows);
+    // 1. Process Bank Statements (PDFs)
+    for (const file of bankFiles) {
+      if (file.size === 0) continue;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      // @ts-ignore - pdf-parse expects Buffer but typing mismatch in Next.js build env
+      const data = await pdf(buffer);
+      const extracted = parseThaiBankPDF(data.text, file.name);
+      bankTransactions.push(...extracted);
+    }
 
-    // 3. Reconcile
+    // 2. Process Ledger Sheets (Excel/CSV)
+    for (const file of ledgerFiles) {
+      if (file.size === 0) continue;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const workbook = XLSX.read(buffer);
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet) as any[];
+        const extracted = parseLedgerExcel(rows, file.name);
+        ledgerTransactions.push(...extracted);
+      }
+    }
+
+    // 3. Reconcile aggregated data
     const result = reconcile(bankTransactions, ledgerTransactions);
 
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Reconciliation error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
 
-function parseThaiBankPDF(text: string): Transaction[] {
+function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
   const lines = text.split('\n');
   
@@ -75,7 +87,7 @@ function parseThaiBankPDF(text: string): Transaction[] {
       const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
       
       transactions.push({
-        id: `bank-${index}`,
+        id: `bank-${fileName}-${index}`,
         date: new Date(year, month, day).toISOString(),
         amount,
         description: line.substring(0, 50).trim(),
@@ -87,7 +99,7 @@ function parseThaiBankPDF(text: string): Transaction[] {
   return transactions;
 }
 
-function parseLedgerExcel(rows: any[]): Transaction[] {
+function parseLedgerExcel(rows: any[], fileName: string): Transaction[] {
   return rows.map((row, index) => {
     const dateKey = Object.keys(row).find(k => k.toLowerCase().includes('date')) || 'Date';
     const amountKey = Object.keys(row).find(k => k.toLowerCase().includes('amount')) || 'Amount';
@@ -103,7 +115,7 @@ function parseLedgerExcel(rows: any[]): Transaction[] {
     }
 
     return {
-      id: `ledger-${index}`,
+      id: `ledger-${fileName}-${index}`,
       date: isNaN(finalDate.getTime()) ? new Date().toISOString() : finalDate.toISOString(),
       amount: parseFloat(String(row[amountKey] || 0).replace(/,/g, '')),
       description: String(row[descKey] || ''),
@@ -116,6 +128,10 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
   const matches: Array<{ bank: Transaction; ledger: Transaction }> = [];
   const unmatchedBank = [...bank];
   const unmatchedLedger = [...ledger];
+
+  // Sort by date to make matching more predictable if multiple matches exist
+  unmatchedBank.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  unmatchedLedger.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   for (let i = unmatchedBank.length - 1; i >= 0; i--) {
     const bTx = unmatchedBank[i];
