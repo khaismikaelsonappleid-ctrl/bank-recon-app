@@ -1,13 +1,32 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+
+interface Transaction {
+  id: string;
+  date: string;
+  amount: number;
+  description: string;
+}
+
+interface ReconciliationResult {
+  matches: Array<{ bank: Transaction; ledger: Transaction }>;
+  unmatchedBank: Transaction[];
+  unmatchedLedger: Transaction[];
+  stats: {
+    totalBank: number;
+    totalLedger: number;
+    matchCount: number;
+    matchRate: number;
+  };
+}
 
 interface FileUploadState {
   bankStatement: File | null;
   ledgerSheet: File | null;
 }
 
-export default function FileUpload() {
+export default function FileUpload({ onResults }: { onResults: (data: ReconciliationResult) => void }) {
   const [files, setFiles] = useState<FileUploadState>({
     bankStatement: null,
     ledgerSheet: null,
@@ -27,14 +46,27 @@ export default function FileUpload() {
     }
     
     setIsUploading(true);
-    // State is set up for parsers hookup
-    console.log('Files ready for processing:', files);
     
-    // Simulate initial setup
-    setTimeout(() => {
+    const formData = new FormData();
+    formData.append('bankStatement', files.bankStatement);
+    formData.append('ledgerSheet', files.ledgerSheet);
+
+    try {
+      const response = await fetch('/api/reconcile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Reconciliation failed');
+      
+      const result = await response.json();
+      onResults(result);
+    } catch (error) {
+      console.error(error);
+      alert('Error during reconciliation. Please check your files.');
+    } finally {
       setIsUploading(false);
-      alert('Files received and state updated. Ready for parsing hookup.');
-    }, 1000);
+    }
   };
 
   return (
@@ -45,7 +77,6 @@ export default function FileUpload() {
       </div>
 
       <div className="space-y-6">
-        {/* Bank Statement Upload */}
         <div className="group relative">
           <label className="block text-sm font-medium text-gray-600 mb-2 ml-1">
             Thai Bank Statement (PDF)
@@ -65,14 +96,13 @@ export default function FileUpload() {
               <svg className={`w-8 h-8 ${files.bankStatement ? 'text-green-400' : 'text-blue-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-sm text-gray-600 font-medium text-center px-4">
                 {files.bankStatement ? files.bankStatement.name : 'Choose bank PDF'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Ledger Sheet Upload */}
         <div className="group relative">
           <label className="block text-sm font-medium text-gray-600 mb-2 ml-1">
             Ledger Sheet (Excel)
@@ -84,7 +114,7 @@ export default function FileUpload() {
           `}>
             <input
               type="file"
-              accept=".xlsx,.xls,.csv"
+              accept=".xlsx,.xls"
               onChange={handleFileChange('ledgerSheet')}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
@@ -92,7 +122,7 @@ export default function FileUpload() {
               <svg className={`w-8 h-8 ${files.ledgerSheet ? 'text-green-400' : 'text-purple-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-gray-600 font-medium">
+              <span className="text-sm text-gray-600 font-medium text-center px-4">
                 {files.ledgerSheet ? files.ledgerSheet.name : 'Choose ledger Excel'}
               </span>
             </div>
@@ -117,7 +147,7 @@ export default function FileUpload() {
               </svg>
               Processing...
             </span>
-          ) : 'Ready to Reconcile'}
+          ) : 'Reconcile Now'}
         </button>
       </div>
     </div>
