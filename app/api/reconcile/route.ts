@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Parse PDF (Bank Statement)
     const bankBuffer = Buffer.from(await bankFile.arrayBuffer());
-    // @ts-ignore - pdf-parse has incompatible types for Buffer in some environments
+    // @ts-ignore - pdf-parse expects Buffer but typing mismatch in Next.js build env
     const bankData = await pdf(bankBuffer);
     const bankTransactions = parseThaiBankPDF(bankData.text);
 
@@ -107,7 +107,7 @@ function parseLedgerExcel(rows: any[]): Transaction[] {
       date: isNaN(finalDate.getTime()) ? new Date().toISOString() : finalDate.toISOString(),
       amount: parseFloat(String(row[amountKey] || 0).replace(/,/g, '')),
       description: String(row[descKey] || ''),
-      source: 'ledger'
+      source: 'ledger' as const
     };
   }).filter(t => !isNaN(t.amount) && t.amount !== 0);
 }
