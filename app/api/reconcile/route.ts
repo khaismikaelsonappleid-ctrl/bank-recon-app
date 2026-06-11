@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Parse PDF (Bank Statement)
     const bankBuffer = Buffer.from(await bankFile.arrayBuffer());
+    // @ts-ignore - pdf-parse has incompatible types for Buffer in some environments
     const bankData = await pdf(bankBuffer);
     const bankTransactions = parseThaiBankPDF(bankData.text);
 
