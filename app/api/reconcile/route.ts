@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 // Types for reconciliation
 interface Transaction {
   id: string;
-  date: Date;
+  date: string; // Use string for serialization
   amount: number;
   description: string;
   source: 'bank' | 'ledger';
@@ -58,13 +58,9 @@ export async function POST(req: NextRequest) {
 
 function parseThaiBankPDF(text: string): Transaction[] {
   const transactions: Transaction[] = [];
-  // Basic regex for common Thai Bank layouts (KBank, SCB)
-  // Look for patterns like: DD/MM/YY or DD MMM YYYY and amounts
-  // Note: Thai banks often use Buddhist Era (BE) or standard AD.
   const lines = text.split('\n');
   
   lines.forEach((line, index) => {
-    // Example pattern: 11/06/2026 14:30 1,500.00
     const dateMatch = line.match(/(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
 
@@ -79,7 +75,7 @@ function parseThaiBankPDF(text: string): Transaction[] {
       
       transactions.push({
         id: `bank-${index}`,
-        date: new Date(year, month, day),
+        date: new Date(year, month, day).toISOString(),
         amount,
         description: line.substring(0, 50).trim(),
         source: 'bank'
@@ -92,23 +88,22 @@ function parseThaiBankPDF(text: string): Transaction[] {
 
 function parseLedgerExcel(rows: any[]): Transaction[] {
   return rows.map((row, index) => {
-    // Try to find Date and Amount columns dynamically
     const dateKey = Object.keys(row).find(k => k.toLowerCase().includes('date')) || 'Date';
     const amountKey = Object.keys(row).find(k => k.toLowerCase().includes('amount')) || 'Amount';
     const descKey = Object.keys(row).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('ref')) || 'Description';
 
     let dateValue = row[dateKey];
-    // Handle Excel serial dates
+    let finalDate: Date;
+
     if (typeof dateValue === 'number') {
-       const date = new Date((dateValue - 25569) * 86400 * 1000);
-       dateValue = date;
+       finalDate = new Date((dateValue - 25569) * 86400 * 1000);
     } else {
-       dateValue = new Date(dateValue);
+       finalDate = new Date(dateValue);
     }
 
     return {
       id: `ledger-${index}`,
-      date: dateValue,
+      date: isNaN(finalDate.getTime()) ? new Date().toISOString() : finalDate.toISOString(),
       amount: parseFloat(String(row[amountKey] || 0).replace(/,/g, '')),
       description: String(row[descKey] || ''),
       source: 'ledger'
@@ -121,9 +116,9 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
   const unmatchedBank = [...bank];
   const unmatchedLedger = [...ledger];
 
-  // Match logic: Same amount, nearest date (within 3 days)
   for (let i = unmatchedBank.length - 1; i >= 0; i--) {
     const bTx = unmatchedBank[i];
+    const bDate = new Date(bTx.date).getTime();
     
     let bestMatchIndex = -1;
     let minTimeDiff = Infinity;
@@ -132,8 +127,8 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
       const lTx = unmatchedLedger[j];
       
       if (Math.abs(bTx.amount - lTx.amount) < 0.01) {
-        const timeDiff = Math.abs(bTx.date.getTime() - lTx.date.getTime());
-        // Limit to 3 days window
+        const lDate = new Date(lTx.date).getTime();
+        const timeDiff = Math.abs(bDate - lDate);
         if (timeDiff < 3 * 24 * 60 * 60 * 1000 && timeDiff < minTimeDiff) {
           minTimeDiff = timeDiff;
           bestMatchIndex = j;
