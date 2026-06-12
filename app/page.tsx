@@ -39,38 +39,38 @@ export default function Home() {
         <div className="space-y-6">
           <div className="grid grid-cols-7 gap-4">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Bank Statements</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('bankStatements')}</p>
                   <p className="text-lg font-bold">{results.stats.totalBank}</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Excel Ledger</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('excelLedger')}</p>
                   <p className="text-lg font-bold">{results.stats.totalLedger}</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Verified</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('verified')}</p>
                   <p className="text-lg font-bold">{results.stats.matchCount}</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Match Rate</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('matchRate')}</p>
                   <p className="text-lg font-bold">{results.stats.matchRate?.toFixed(1) || 0}%</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Mismatch</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('mismatch')}</p>
                   <p className="text-lg font-bold">{results.stats.mismatchCount || 0}</p>
               </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Possible Match</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{t('possibleMatch')}</p>
                   <p className="text-lg font-bold">{results.stats.possibleMatchCount || 0}</p>
               </div>
           </div>
           <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border">
             <div className="flex justify-between p-4 border-b">
               <div className="flex gap-2">
-                  <button onClick={() => setFilter('all')} className="px-3 py-1 text-xs font-bold uppercase rounded border">All</button>
-                  <button onClick={() => setFilter('mismatches')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Mismatches</button>
-                  <button onClick={() => setFilter('bank')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Bank</button>
+                  <button onClick={() => setFilter('all')} className="px-3 py-1 text-xs font-bold uppercase rounded border">{t('all')}</button>
+                  <button onClick={() => setFilter('mismatches')} className="px-3 py-1 text-xs font-bold uppercase rounded border">{t('mismatches')}</button>
+                  <button onClick={() => setFilter('bank')} className="px-3 py-1 text-xs font-bold uppercase rounded border">{t('bank')}</button>
               </div>
-              <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export</button>
+              <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">{t('export')}</button>
             </div>
             <table className="w-full text-xs text-left">
               <thead className="text-slate-700 uppercase bg-slate-50 border-b">
