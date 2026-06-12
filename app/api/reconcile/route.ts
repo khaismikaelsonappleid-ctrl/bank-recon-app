@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import pdf from 'pdf-parse';
 import * as XLSX from 'xlsx';
 
-// Types for reconciliation
 interface Transaction {
   id: string;
-  date: string; // Use string for serialization
+  date: string; 
   amount: number;
   description: string;
   source: 'bank' | 'ledger';
@@ -36,17 +35,14 @@ export async function POST(req: NextRequest) {
     const bankTransactions: Transaction[] = [];
     const ledgerTransactions: Transaction[] = [];
 
-    // 1. Process Bank Statements (PDFs)
     for (const file of bankFiles) {
       if (file.size === 0) continue;
       const buffer = Buffer.from(await file.arrayBuffer());
-      // @ts-ignore - pdf-parse expects Buffer but typing mismatch in Next.js build env
+      // @ts-ignore
       const data = await pdf(buffer);
-      const extracted = parseThaiBankPDF(data.text, file.name);
-      bankTransactions.push(...extracted);
+      bankTransactions.push(...parseThaiBankPDF(data.text, file.name));
     }
 
-    // 2. Process Ledger Sheets (Excel/CSV)
     for (const file of ledgerFiles) {
       if (file.size === 0) continue;
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -54,14 +50,11 @@ export async function POST(req: NextRequest) {
       for (const sheetName of workbook.SheetNames) {
         const worksheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet) as any[];
-        const extracted = parseLedgerExcel(rows, file.name);
-        ledgerTransactions.push(...extracted);
+        ledgerTransactions.push(...parseLedgerExcel(rows, file.name));
       }
     }
 
-    // 3. Reconcile aggregated data
     const result = reconcile(bankTransactions, ledgerTransactions);
-
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Reconciliation error:', error);
@@ -69,33 +62,42 @@ export async function POST(req: NextRequest) {
   }
 }
 
+function parseDate(dateStr: any): Date | null {
+  if (typeof dateStr === 'number') return new Date((dateStr - 25569) * 86400 * 1000);
+  if (typeof dateStr !== 'string') return null;
+  const parts = dateStr.split(/[\/.-]/);
+  if (parts.length < 3) return null;
+  
+  let day = parseInt(parts[0]);
+  let month = parseInt(parts[1]) - 1;
+  let year = parseInt(parts[2]);
+
+  if (year > 2500) year -= 543;
+  if (year < 100) year += (year < 50 ? 2000 : 1900);
+
+  const d = new Date(year, month, day);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  const lines = text.split('\n');
-  
-  lines.forEach((line, index) => {
+  text.split('\n').forEach((line, index) => {
     const dateMatch = line.match(/(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
 
     if (dateMatch && amountMatch) {
-      const day = parseInt(dateMatch[1]);
-      const month = parseInt(dateMatch[2]) - 1;
-      let year = parseInt(dateMatch[3]);
-      if (year < 100) year += 2000;
-      if (year > 2500) year -= 543; // Handle Buddhist Era
-
-      const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-      
-      transactions.push({
-        id: `bank-${fileName}-${index}`,
-        date: new Date(year, month, day).toISOString(),
-        amount,
-        description: line.substring(0, 50).trim(),
-        source: 'bank'
-      });
+      const d = parseDate(dateMatch[0]);
+      if (d) {
+        transactions.push({
+          id: `bank-${fileName}-${index}`,
+          date: d.toISOString(),
+          amount: parseFloat(amountMatch[1].replace(/,/g, '')),
+          description: line.substring(0, 50).trim(),
+          source: 'bank'
+        });
+      }
     }
   });
-
   return transactions;
 }
 
@@ -105,18 +107,10 @@ function parseLedgerExcel(rows: any[], fileName: string): Transaction[] {
     const amountKey = Object.keys(row).find(k => k.toLowerCase().includes('amount')) || 'Amount';
     const descKey = Object.keys(row).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('ref')) || 'Description';
 
-    let dateValue = row[dateKey];
-    let finalDate: Date;
-
-    if (typeof dateValue === 'number') {
-       finalDate = new Date((dateValue - 25569) * 86400 * 1000);
-    } else {
-       finalDate = new Date(dateValue);
-    }
-
+    const d = parseDate(row[dateKey]);
     return {
       id: `ledger-${fileName}-${index}`,
-      date: isNaN(finalDate.getTime()) ? new Date().toISOString() : finalDate.toISOString(),
+      date: (d || new Date()).toISOString(),
       amount: parseFloat(String(row[amountKey] || 0).replace(/,/g, '')),
       description: String(row[descKey] || ''),
       source: 'ledger' as const
@@ -129,27 +123,23 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
   const unmatchedBank = [...bank];
   const unmatchedLedger = [...ledger];
 
-  // Sort by date to make matching more predictable if multiple matches exist
-  unmatchedBank.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  unmatchedLedger.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
   for (let i = unmatchedBank.length - 1; i >= 0; i--) {
     const bTx = unmatchedBank[i];
-    const bDate = new Date(bTx.date).getTime();
-    
     let bestMatchIndex = -1;
     let minTimeDiff = Infinity;
 
     for (let j = 0; j < unmatchedLedger.length; j++) {
       const lTx = unmatchedLedger[j];
-      
-      if (Math.abs(bTx.amount - lTx.amount) < 0.01) {
-        const lDate = new Date(lTx.date).getTime();
-        const timeDiff = Math.abs(bDate - lDate);
-        if (timeDiff < 3 * 24 * 60 * 60 * 1000 && timeDiff < minTimeDiff) {
+      const amountDiff = Math.abs(bTx.amount - lTx.amount);
+      const timeDiff = Math.abs(new Date(bTx.date).getTime() - new Date(lTx.date).getTime());
+
+      if (amountDiff < 0.01 && timeDiff < 3 * 24 * 60 * 60 * 1000) {
+        if (timeDiff < minTimeDiff) {
           minTimeDiff = timeDiff;
           bestMatchIndex = j;
         }
+      } else {
+        console.log(`Debug: No Match. Bank: ${bTx.amount} (${bTx.date}), Ledger: ${lTx.amount} (${lTx.date}). Reason: ${amountDiff >= 0.01 ? 'Amount' : 'Date'}`);
       }
     }
 
