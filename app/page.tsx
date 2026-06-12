@@ -37,7 +37,7 @@ export default function Home() {
         <FileUpload onResults={setResults} />
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-7 gap-4">
+          <div className="grid grid-cols-6 gap-4">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                   <p className="text-[10px] text-slate-400 font-bold uppercase">{t('bankStatements')}</p>
                   <p className="text-lg font-bold">{results.stats.totalBank}</p>
