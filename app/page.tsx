@@ -121,7 +121,7 @@ export default function Home() {
                           {formatDate(match.bank.date)}
                         </td>
                         <td className="px-4 py-4">
-                          <p className="text-xs font-semibold text-slate-700">{match.bank.description}</p>
+                          <p className="text-xs font-semibold text-slate-700">{match.bank.description || 'N/A'}</p>
                           <p className="text-[9px] text-slate-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">ID: {match.bank.id.slice(0, 8)}</p>
                         </td>
                         <td className="px-4 py-4 text-xs font-bold text-right text-slate-900 tabular-nums">
@@ -138,7 +138,7 @@ export default function Home() {
                         </td>
                         <td className="pl-4 pr-6 md:pr-8 py-4">
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-slate-600">{match.ledger.description}</span>
+                            <span className="text-xs font-medium text-slate-600">{match.ledger.description || 'N/A'}</span>
                             <span className="text-[9px] text-emerald-500/80 font-bold mt-0.5 uppercase tracking-widest">Auto-Match</span>
                           </div>
                         </td>
@@ -151,7 +151,7 @@ export default function Home() {
                           {formatDate(tx.date)}
                         </td>
                         <td className="px-4 py-4">
-                          <p className="text-xs font-semibold text-slate-700">{tx.description}</p>
+                          <p className="text-xs font-semibold text-slate-700">{tx.description || 'N/A'}</p>
                           <p className="text-[9px] text-rose-400 font-bold mt-0.5 uppercase tracking-wider">Unresolved Entry</p>
                         </td>
                         <td className="px-4 py-4 text-xs font-bold text-right text-rose-500 tabular-nums">
