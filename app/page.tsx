@@ -28,23 +28,35 @@ export default function Home() {
         <div className="space-y-6">
           <div className="grid grid-cols-3 gap-4">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase">Processed</p>
+                  <p className="text-xs text-slate-400 font-bold uppercase">Bank Statements</p>
                   <p className="text-2xl font-bold">{results.stats.totalBank}</p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase">Verified</p>
+                  <p className="text-xs text-slate-400 font-bold uppercase">Excel Ledgers</p>
+                  <p className="text-2xl font-bold">{results.stats.totalLedger}</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <p className="text-xs text-slate-400 font-bold uppercase">Verified Matches</p>
                   <p className="text-2xl font-bold">{results.stats.matchCount}</p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                   <p className="text-xs text-slate-400 font-bold uppercase">Match Rate</p>
                   <p className="text-2xl font-bold">{results.stats.matchRate.toFixed(1)}%</p>
               </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <p className="text-xs text-slate-400 font-bold uppercase">Mismatch Entries</p>
+                  <p className="text-2xl font-bold">{results.stats.mismatchCount}</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <p className="text-xs text-slate-400 font-bold uppercase">Possible Matches</p>
+                  <p className="text-2xl font-bold">{results.stats.possibleMatchCount}</p>
+              </div>
           </div>
           <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border">
             <div className="flex justify-between p-4 border-b">
               <div className="flex gap-2">
-                  <button onClick={() => setFilter('all')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'all' ? 'bg-indigo-50' : ''}`}>All</button>
-                  <button onClick={() => setFilter('mismatches')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'mismatches' ? 'bg-indigo-50' : ''}`}>Mismatches</button>
+                  <button onClick={() => setFilter('all')} className="px-3 py-1 text-xs font-bold uppercase rounded border">All</button>
+                  <button onClick={() => setFilter('mismatches')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Mismatches</button>
               </div>
               <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export Report</button>
             </div>
