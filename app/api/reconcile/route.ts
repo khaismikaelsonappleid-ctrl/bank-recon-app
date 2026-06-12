@@ -62,6 +62,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * Parses a date string that may be in DD/MM/YYYY or DD/MM/BE format.
+ * Automatically handles Thai Buddhist Era conversion.
+ */
 function parseDate(dateStr: any): Date | null {
   if (typeof dateStr === 'number') return new Date((dateStr - 25569) * 86400 * 1000);
   if (typeof dateStr !== 'string') return null;
@@ -72,9 +76,18 @@ function parseDate(dateStr: any): Date | null {
   let month = parseInt(parts[1]) - 1;
   let year = parseInt(parts[2]);
 
-  // Handle Buddhist Era to Gregorian
-  if (year >= 2400) {
+  // Logic: 
+  // 1. If year is >= 2500, treat as Buddhist Era (BE = AD + 543)
+  // 2. If year is between 2400-2499, it could be ambiguous, but usually in business contexts 
+  //    these are BE dates.
+  // 3. If year is <= 2399, assume AD.
+  // 4. Handle 2-digit years.
+  
+  if (year >= 2500) {
     year -= 543;
+  } else if (year >= 2400 && year < 2500) {
+     // Conservative check: If date appears like 24xx, assume BE.
+     year -= 543;
   } else if (year < 100) {
     year += (year < 50 ? 2000 : 1900);
   }
@@ -85,9 +98,10 @@ function parseDate(dateStr: any): Date | null {
 
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  text.split('\n').forEach((line, index) => {
-    // Look for DD/MM/YY or DD/MM/YYYY
-    const dateMatch = line.match(/(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})/);
+  text.split('
+').forEach((line, index) => {
+    // Look for DD/MM/YY or DD/MM/YYYY or DD/MM/BE (4 digits, often 25xx)
+    const dateMatch = line.match(/(\d{2})[/.-](\d{2})[/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
 
     if (dateMatch && amountMatch) {
