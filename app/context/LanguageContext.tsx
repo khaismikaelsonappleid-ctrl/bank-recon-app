@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { dictionary } from '../../lib/dictionary';
 
-type Lang = 'en' | 'fr';
+type Lang = 'en' | 'th';
 const LanguageContext = createContext({
   lang: 'en' as Lang,
   setLang: (l: Lang) => {},
