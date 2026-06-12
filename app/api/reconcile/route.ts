@@ -72,22 +72,22 @@ function parseDate(dateStr: any): Date | null {
   let month = parseInt(parts[1]) - 1;
   let year = parseInt(parts[2]);
 
-  // Fix: Ensure Buddhist years 2400-2599 are correctly converted
-  if (year >= 2400 && year <= 2599) {
+  // Handle both DD/MM/YYYY and MM/DD/YYYY if ambiguous, but assuming DD/MM/YYYY
+  // Handle Buddhist years: if year >= 2500, convert to AD
+  if (year >= 2500) {
     year -= 543;
-  } else if (year < 100) {
-    year += (year >= 50 ? 1957 : 2000); 
   }
-
+  
   const d = new Date(year, month, day);
   return isNaN(d.getTime()) ? null : d;
 }
 
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  text.split('\n').forEach((line, index) => {
-    const dateMatch = line.match(/(\d{2})[/.-](\d{2})[/.-](\d{2,4})/);
-    const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
+  text.split('
+').forEach((line, index) => {
+    const dateMatch = line.match(/(d{2})[/.-](d{2})[/.-](d{2,4})/);
+    const amountMatch = line.match(/(d{1,3}(,d{3})*(.d{2}))/);
 
     if (dateMatch && amountMatch) {
       const d = parseDate(dateMatch[0]);
@@ -137,7 +137,6 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
       const amountDiff = Math.abs(bTx.amount - lTx.amount);
       const timeDiff = Math.abs(new Date(bTx.date).getTime() - new Date(lTx.date).getTime());
 
-      // Increase threshold to 14 days
       if (amountDiff < 0.01 && timeDiff < 14 * 24 * 60 * 60 * 1000) {
         if (timeDiff < minTimeDiff) {
           minTimeDiff = timeDiff;
