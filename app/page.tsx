@@ -6,7 +6,6 @@ import FileUpload from './components/FileUpload';
 export default function Home() {
   const [results, setResults] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'mismatches'>('all');
-  const [lang, setLang] = useState<'EN' | 'TH'>('EN');
 
   const processedData = useMemo(() => {
     if (!results) return [];
@@ -24,14 +23,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#FDFCFB] text-[#2D2E2E] font-sans p-8">
-      <header className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-semibold">Clear<span className="text-indigo-400">Ledger</span></h1>
-        <div className="flex gap-2">
-            <button onClick={() => setLang(l => l === 'EN' ? 'TH' : 'EN')} className="px-3 py-1 text-xs font-bold uppercase rounded border">{lang}</button>
-            <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export Report</button>
-        </div>
-      </header>
-
       {!results ? (
         <FileUpload onResults={setResults} />
       ) : (
@@ -41,6 +32,7 @@ export default function Home() {
                 <button onClick={() => setFilter('all')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'all' ? 'bg-indigo-50' : ''}`}>All</button>
                 <button onClick={() => setFilter('mismatches')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'mismatches' ? 'bg-indigo-50' : ''}`}>Mismatches</button>
             </div>
+            <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export Report</button>
           </div>
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b">
