@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import FileUpload from './components/FileUpload';
+import { exportToExcel } from '@/utils/excel';
 
 export default function Home() {
   const [results, setResults] = useState<any>(null);
@@ -51,15 +52,20 @@ export default function Home() {
           </div>
           
           {results && (
-            <button 
-              onClick={() => setResults(null)}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-100 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-md transition-all duration-300 w-full md:w-auto active:scale-95"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Start New Analysis
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => exportToExcel(results)}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-indigo-600 border border-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700 hover:border-indigo-700 hover:shadow-md transition-all duration-300 w-full md:w-auto active:scale-95"
+              >
+                Export to Excel
+              </button>
+              <button 
+                onClick={() => setResults(null)}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-100 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-md transition-all duration-300 w-full md:w-auto active:scale-95"
+              >
+                Start New Analysis
+              </button>
+            </div>
           )}
         </header>
 
