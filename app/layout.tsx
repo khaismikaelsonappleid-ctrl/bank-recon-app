@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,12 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#FDFCFB" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <header style={{ padding: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+          <LanguageToggle />
+        </header>
+        {children}
+      </body>
     </html>
   );
 }
