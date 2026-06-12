@@ -65,15 +65,19 @@ export async function POST(req: NextRequest) {
 function parseDate(dateStr: any): Date | null {
   if (typeof dateStr === 'number') return new Date((dateStr - 25569) * 86400 * 1000);
   if (typeof dateStr !== 'string') return null;
-  const parts = dateStr.split(/[\/.-]/);
+  const parts = dateStr.split(/[/.-]/);
   if (parts.length < 3) return null;
   
   let day = parseInt(parts[0]);
   let month = parseInt(parts[1]) - 1;
   let year = parseInt(parts[2]);
 
-  if (year > 2500) year -= 543;
-  if (year < 100) year += (year < 50 ? 2000 : 1900);
+  // Handle Buddhist Era to Gregorian
+  if (year >= 2400) {
+    year -= 543;
+  } else if (year < 100) {
+    year += (year < 50 ? 2000 : 1900);
+  }
 
   const d = new Date(year, month, day);
   return isNaN(d.getTime()) ? null : d;
@@ -81,7 +85,9 @@ function parseDate(dateStr: any): Date | null {
 
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  text.split('\n').forEach((line, index) => {
+  text.split('
+').forEach((line, index) => {
+    // Look for DD/MM/YY or DD/MM/YYYY
     const dateMatch = line.match(/(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
 
@@ -138,8 +144,6 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
           minTimeDiff = timeDiff;
           bestMatchIndex = j;
         }
-      } else {
-        console.log(`Debug: No Match. Bank: ${bTx.amount} (${bTx.date}), Ledger: ${lTx.amount} (${lTx.date}). Reason: ${amountDiff >= 0.01 ? 'Amount' : 'Date'}`);
       }
     }
 
