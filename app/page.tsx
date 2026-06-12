@@ -2,11 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import FileUpload from './components/FileUpload';
+import { useLanguage } from './context/LanguageContext';
 
 export default function Home() {
   const [results, setResults] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'mismatches' | 'bank'>('all');
-  const [lang, setLang] = useState<'en' | 'fr'>('en');
+  const { lang, setLang, t } = useLanguage();
 
   const processedData = useMemo(() => {
     if (!results) return [];
@@ -74,12 +75,12 @@ export default function Home() {
             <table className="w-full text-xs text-left">
               <thead className="text-slate-700 uppercase bg-slate-50 border-b">
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Time</th>
-                  <th className="px-4 py-3">Items</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Balance</th>
-                  <th className="px-4 py-3">Channel</th>
+                  <th className="px-4 py-3">{t('date')}</th>
+                  <th className="px-4 py-3">{t('time')}</th>
+                  <th className="px-4 py-3">{t('items')}</th>
+                  <th className="px-4 py-3">{t('amount')}</th>
+                  <th className="px-4 py-3">{t('balance')}</th>
+                  <th className="px-4 py-3">{t('channel')}</th>
                 </tr>
               </thead>
               <tbody>
