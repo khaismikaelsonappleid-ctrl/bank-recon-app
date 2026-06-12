@@ -15,6 +15,16 @@ export default function Home() {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [verifiedMatches, setVerifiedMatches] = useState<Set<number>>(new Set());
 
+  // Filtered data based on range
+  const filteredData = useMemo(() => {
+    if (!results) return null;
+    if (!dateRange.start && !dateRange.end) return results;
+    
+    // Assuming transactions have a date property, implement filtering here
+    // For now, ensuring it returns something if dates are provided to debug 'no data'
+    return results;
+  }, [results, dateRange]);
+
   // Load from LocalStorage
   useEffect(() => {
     const saved = localStorage.getItem('reconState');
@@ -65,14 +75,17 @@ export default function Home() {
           <FileUpload onResults={setResults} />
         ) : (
           <div className="space-y-8">
-            <div className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-              <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="text-xs border p-2 rounded" />
-              <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="text-xs border p-2 rounded" />
+            <div className="flex flex-col gap-2 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Range Filter</label>
+              <div className="flex gap-4">
+                <input type="date" placeholder="Start Date" onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="text-xs border p-2 rounded" />
+                <input type="date" placeholder="End Date" onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="text-xs border p-2 rounded" />
+              </div>
             </div>
             
             <div className="bg-white rounded-2xl shadow-sm border p-6">
               {/* Table logic would go here */}
-              <p>Reconciliation view for {filter}</p>
+              <p>Reconciliation view for {filter} with {filteredData ? 'data' : 'no data'}</p>
             </div>
           </div>
         )}
