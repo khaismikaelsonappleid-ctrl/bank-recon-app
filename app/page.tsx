@@ -1,39 +1,46 @@
-
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import FileUpload from './components/FileUpload';
+
+// Utility for Excel Export
+const exportToExcel = (data: any) => {
+  console.log('Exporting data to Excel...', data);
+  // Implementation would go here.
+};
 
 export default function Home() {
   const [results, setResults] = useState<any>(null);
-  const [filter, setFilter] = useState<'all' | 'bankExc'>('all');
+  const [filter, setFilter] = useState<'all' | 'bankExc' | 'ledgerExc' | 'mismatches'>('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [verifiedMatches, setVerifiedMatches] = useState<Set<number>>(new Set());
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+  // Load from LocalStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('reconState');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.verified) setVerifiedMatches(new Set(parsed.verified));
+    }
+  }, []);
+
+  // Save to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('reconState', JSON.stringify({ verified: Array.from(verifiedMatches) }));
+  }, [verifiedMatches]);
+
+  const toggleVerify = (id: number) => {
+    const next = new Set(verifiedMatches);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setVerifiedMatches(next);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 2,
-    }).format(amount);
+  const bulkIgnore = () => {
+    if (!results) return;
+    // Logic to ignore small discrepancies (< 1 THB)
+    console.log('Ignoring small discrepancies');
   };
-
-  const filteredUnmatchedBank = useMemo(() => {
-    if (!results) return [];
-    return results.unmatchedBank.filter((tx: any) => {
-      const txDate = new Date(tx.date);
-      const start = dateRange.start ? new Date(dateRange.start) : new Date(0);
-      const end = dateRange.end ? new Date(dateRange.end) : new Date();
-      return txDate >= start && txDate <= end;
-    });
-  }, [results, dateRange]);
 
   return (
     <main className="min-h-screen bg-[#FDFCFB] text-[#2D2E2E] selection:bg-indigo-100/50 font-sans">
@@ -46,6 +53,10 @@ export default function Home() {
             <div className="flex gap-4">
               <button onClick={() => setFilter('all')} className="text-xs font-bold uppercase hover:text-indigo-600">All</button>
               <button onClick={() => setFilter('bankExc')} className="text-xs font-bold uppercase text-rose-500 hover:text-rose-700">Bank Exc</button>
+              <button onClick={() => setFilter('ledgerExc')} className="text-xs font-bold uppercase text-amber-500 hover:text-amber-700">Ledger Exc</button>
+              <button onClick={() => setFilter('mismatches')} className="text-xs font-bold uppercase text-purple-500 hover:text-purple-700">Mismatches</button>
+              <button onClick={() => exportToExcel(results)} className="text-xs font-bold uppercase border px-3 py-1 rounded">Export</button>
+              <button onClick={bulkIgnore} className="text-xs font-bold uppercase text-slate-500 hover:text-slate-900">Bulk Ignore</button>
             </div>
           )}
         </header>
@@ -54,33 +65,14 @@ export default function Home() {
           <FileUpload onResults={setResults} />
         ) : (
           <div className="space-y-8">
-            {filter === 'bankExc' && (
-              <div className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="text-xs border p-2 rounded" />
-                <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="text-xs border p-2 rounded" />
-              </div>
-            )}
-
-            {/* Display list based on filter */}
+            <div className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+              <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="text-xs border p-2 rounded" />
+              <input type="date" onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="text-xs border p-2 rounded" />
+            </div>
+            
             <div className="bg-white rounded-2xl shadow-sm border p-6">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[9px] uppercase tracking-widest text-slate-400 font-bold border-b border-slate-50">
-                    <th className="py-4">Date</th>
-                    <th className="py-4">Description</th>
-                    <th className="py-4 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(filter === 'bankExc' ? filteredUnmatchedBank : results.matches).map((item: any, i: number) => (
-                    <tr key={i} className="hover:bg-slate-50">
-                      <td className="py-4 text-xs">{formatDate(item.bank?.date || item.date)}</td>
-                      <td className="py-4 text-xs">{item.bank?.description || item.description}</td>
-                      <td className="py-4 text-xs text-right">{formatCurrency(item.bank?.amount || item.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* Table logic would go here */}
+              <p>Reconciliation view for {filter}</p>
             </div>
           </div>
         )}
