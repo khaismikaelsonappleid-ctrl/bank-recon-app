@@ -72,12 +72,10 @@ function parseDate(dateStr: any): Date | null {
   let month = parseInt(parts[1]) - 1;
   let year = parseInt(parts[2]);
 
-  if (year >= 2500) {
+  if (year >= 2400) {
     year -= 543;
-  } else if (year >= 2400 && year < 2500) {
-     year -= 543;
   } else if (year < 100) {
-    year += (year < 50 ? 2000 : 1900);
+    year += (year >= 50 ? 1957 : 2000); 
   }
 
   const d = new Date(year, month, day);
@@ -86,7 +84,8 @@ function parseDate(dateStr: any): Date | null {
 
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  text.split('\n').forEach((line, index) => {
+  text.split('
+').forEach((line, index) => {
     const dateMatch = line.match(/(\d{2})[/.-](\d{2})[/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
 
