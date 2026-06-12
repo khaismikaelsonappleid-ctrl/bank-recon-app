@@ -1,12 +1,12 @@
-
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import FileUpload from './components/FileUpload';
 
 export default function Home() {
   const [results, setResults] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'mismatches'>('all');
+  const [lang, setLang] = useState<'EN' | 'TH'>('EN');
 
   const processedData = useMemo(() => {
     if (!results) return [];
@@ -17,22 +17,31 @@ export default function Home() {
     return results.matches.map((m: any) => ({ ...m.bank, type: 'Match', ledger: m.ledger }));
   }, [results, filter]);
 
+  const exportReport = () => {
+      // Basic export logic placeholder
+      console.log("Exporting report...");
+  };
+
   return (
     <main className="min-h-screen bg-[#FDFCFB] text-[#2D2E2E] font-sans p-8">
       <header className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-semibold">Clear<span className="text-indigo-400">Ledger</span></h1>
-        {results && (
-          <div className="flex gap-2">
-            <button onClick={() => setFilter('all')} className="px-3 py-1 text-xs font-bold uppercase rounded border">All</button>
-            <button onClick={() => setFilter('mismatches')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Mismatches</button>
-          </div>
-        )}
+        <div className="flex gap-2">
+            <button onClick={() => setLang(l => l === 'EN' ? 'TH' : 'EN')} className="px-3 py-1 text-xs font-bold uppercase rounded border">{lang}</button>
+            <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export Report</button>
+        </div>
       </header>
 
       {!results ? (
         <FileUpload onResults={setResults} />
       ) : (
         <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+          <div className="flex justify-between p-4 border-b">
+            <div className="flex gap-2">
+                <button onClick={() => setFilter('all')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'all' ? 'bg-indigo-50' : ''}`}>All</button>
+                <button onClick={() => setFilter('mismatches')} className={`px-3 py-1 text-xs font-bold uppercase rounded border ${filter === 'mismatches' ? 'bg-indigo-50' : ''}`}>Mismatches</button>
+            </div>
+          </div>
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b">
               <tr>
@@ -40,6 +49,7 @@ export default function Home() {
                 <th className="px-6 py-3">Description</th>
                 <th className="px-6 py-3">Amount</th>
                 <th className="px-6 py-3">Type</th>
+                <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -49,6 +59,10 @@ export default function Home() {
                   <td className="px-6 py-4">{row.description}</td>
                   <td className="px-6 py-4">{row.amount.toLocaleString()}</td>
                   <td className="px-6 py-4">{row.type}</td>
+                  <td className="px-6 py-4 flex gap-2">
+                    <button className="text-indigo-500 font-bold">Match</button>
+                    <button className="text-slate-400 font-bold">Ignore</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
