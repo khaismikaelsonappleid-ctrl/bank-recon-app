@@ -1,18 +1,1 @@
-export const dictionary = {
-  en: {
-    date: 'Date',
-    time: 'Time',
-    items: 'Items',
-    amount: 'Amount',
-    balance: 'Balance',
-    channel: 'Channel',
-  },
-  th: {
-    date: 'วันที่',
-    time: 'เวลา',
-    items: 'รายการ',
-    amount: 'จำนวนเงิน',
-    balance: 'ยอดคงเหลือ',
-    channel: 'ช่องทาง',
-  },
-};
+export const dictionary = { en: { date: 'Date', time: 'Time', items: 'Items', amount: 'Amount', balance: 'Balance', channel: 'Channel', bankStatements: 'Bank Statements', excelLedger: 'Excel Ledger', verified: 'Verified', matchRate: 'Match Rate', mismatch: 'Mismatch', possibleMatch: 'Possible Match', all: 'All', mismatches: 'Mismatches', bank: 'Bank', export: 'Export' }, th: { date: 'วันที่', time: 'เวลา', items: 'รายการ', amount: 'จำนวนเงิน', balance: 'ยอดคงเหลือ', channel: 'ช่องทาง', bankStatements: 'รายการเดินบัญชี', excelLedger: 'สมุดบัญชี', verified: 'ตรวจสอบแล้ว', matchRate: 'อัตราการจับคู่', mismatch: 'ไม่ตรงกัน', possibleMatch: 'คู่ที่อาจเป็นไปได้', all: 'ทั้งหมด', mismatches: 'ไม่ตรงกัน', bank: 'ธนาคาร', export: 'ส่งออก' } };
