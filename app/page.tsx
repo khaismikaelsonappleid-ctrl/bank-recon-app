@@ -29,8 +29,8 @@ export default function Home() {
     <main className="min-h-screen bg-[#FDFCFB] text-[#2D2E2E] font-sans p-8">
       <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-bold">Bank Recon App</h1>
-          <button onClick={() => setLang(lang === 'en' ? 'fr' : 'en')} className="px-3 py-1 text-xs font-bold uppercase rounded border">
-              {lang === 'en' ? 'EN' : 'FR'}
+          <button onClick={() => setLang(lang === 'en' ? 'th' : 'en')} className="px-3 py-1 text-xs font-bold uppercase rounded border">
+              {lang === 'en' ? 'EN' : 'TH'}
           </button>
       </div>
       {!results ? (
