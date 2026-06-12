@@ -62,10 +62,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/**
- * Parses a date string that may be in DD/MM/YYYY or DD/MM/BE format.
- * Automatically handles Thai Buddhist Era conversion.
- */
 function parseDate(dateStr: any): Date | null {
   if (typeof dateStr === 'number') return new Date((dateStr - 25569) * 86400 * 1000);
   if (typeof dateStr !== 'string') return null;
@@ -142,7 +138,8 @@ function reconcile(bank: Transaction[], ledger: Transaction[]): ReconciliationRe
       const amountDiff = Math.abs(bTx.amount - lTx.amount);
       const timeDiff = Math.abs(new Date(bTx.date).getTime() - new Date(lTx.date).getTime());
 
-      if (amountDiff < 0.01 && timeDiff < 3 * 24 * 60 * 60 * 1000) {
+      // Increase threshold to 14 days
+      if (amountDiff < 0.01 && timeDiff < 14 * 24 * 60 * 60 * 1000) {
         if (timeDiff < minTimeDiff) {
           minTimeDiff = timeDiff;
           bestMatchIndex = j;
