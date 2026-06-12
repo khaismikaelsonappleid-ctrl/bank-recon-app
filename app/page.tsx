@@ -152,7 +152,7 @@ export default function Home() {
                         </td>
                         <td className="px-4 py-4">
                           <p className="text-xs font-semibold text-slate-700">{tx.description || 'N/A'}</p>
-                          <p className="text-[9px] text-rose-400 font-bold mt-0.5 uppercase tracking-wider">Unresolved Entry</p>
+                          <p className="text-[9px] text-rose-400 font-bold mt-0.5 uppercase tracking-wider">Unresolved Bank Entry</p>
                         </td>
                         <td className="px-4 py-4 text-xs font-bold text-right text-rose-500 tabular-nums">
                           {formatCurrency(tx.amount)}
@@ -168,6 +168,33 @@ export default function Home() {
                         </td>
                         <td className="pl-4 pr-6 md:pr-8 py-4">
                           <span className="text-[10px] font-medium text-slate-400 italic">No ledger match found</span>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {results.unmatchedLedger.map((tx: any, i: number) => (
+                      <tr key={`uml-${i}`} className="bg-amber-50/5 hover:bg-amber-50/10 transition-colors duration-200">
+                        <td className="pl-6 md:pl-8 pr-4 py-4 text-xs text-slate-400 font-medium italic">
+                          {formatDate(tx.date)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <p className="text-xs font-semibold text-slate-700">{tx.description || 'N/A'}</p>
+                          <p className="text-[9px] text-amber-500 font-bold mt-0.5 uppercase tracking-wider">Unresolved Ledger Entry</p>
+                        </td>
+                        <td className="px-4 py-4 text-xs font-bold text-right text-amber-600 tabular-nums">
+                          {formatCurrency(tx.amount)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex justify-center">
+                            <div className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 border border-amber-100/50">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="pl-4 pr-6 md:pr-8 py-4">
+                          <span className="text-[10px] font-medium text-slate-400 italic">No bank match found</span>
                         </td>
                       </tr>
                     ))}
