@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState } from 'react';
-import { dictionary } from './dictionary';
+import { dictionary } from '../../lib/dictionary';
 
 type Lang = 'en' | 'fr';
 const LanguageContext = createContext({
