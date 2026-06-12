@@ -6,6 +6,7 @@ import FileUpload from './components/FileUpload';
 export default function Home() {
   const [results, setResults] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'mismatches' | 'bank'>('all');
+  const [lang, setLang] = useState<'en' | 'fr'>('en');
 
   const processedData = useMemo(() => {
     if (!results) return [];
@@ -24,67 +25,72 @@ export default function Home() {
   };
 
   return (
-    <main className='min-h-screen bg-[#FDFCFB] text-[#2D2E2E] font-sans p-8'>
+    <main className="min-h-screen bg-[#FDFCFB] text-[#2D2E2E] font-sans p-8">
+      <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-bold">Bank Recon App</h1>
+          <button onClick={() => setLang(lang === 'en' ? 'fr' : 'en')} className="px-3 py-1 text-xs font-bold uppercase rounded border">
+              {lang === 'en' ? 'EN' : 'FR'}
+          </button>
+      </div>
       {!results ? (
         <FileUpload onResults={setResults} />
       ) : (
-        <div className='space-y-6'>
-          <div className='grid grid-cols-3 gap-4'>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Bank Statements</p>
-                  <p className='text-2xl font-bold'>{results.stats.totalBank}</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-7 gap-4">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Bank Statements</p>
+                  <p className="text-lg font-bold">{results.stats.totalBank}</p>
               </div>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Excel Ledgers</p>
-                  <p className='text-2xl font-bold'>{results.stats.totalLedger}</p>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Excel Ledger</p>
+                  <p className="text-lg font-bold">{results.stats.totalLedger}</p>
               </div>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Verified Matches</p>
-                  <p className='text-2xl font-bold'>{results.stats.matchCount}</p>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Verified</p>
+                  <p className="text-lg font-bold">{results.stats.matchCount}</p>
               </div>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Match Rate</p>
-                  <p className='text-2xl font-bold'>{results.stats.matchRate?.toFixed(1) || 0}%</p>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Match Rate</p>
+                  <p className="text-lg font-bold">{results.stats.matchRate?.toFixed(1) || 0}%</p>
               </div>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Mismatch Entries</p>
-                  <p className='text-2xl font-bold'>{results.stats.mismatchCount || 0}</p>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Mismatch</p>
+                  <p className="text-lg font-bold">{results.stats.mismatchCount || 0}</p>
               </div>
-              <div className='bg-white p-6 rounded-2xl shadow-sm border border-slate-100'>
-                  <p className='text-xs text-slate-400 font-bold uppercase'>Possible Matches</p>
-                  <p className='text-2xl font-bold'>{results.stats.possibleMatchCount || 0}</p>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Possible Match</p>
+                  <p className="text-lg font-bold">{results.stats.possibleMatchCount || 0}</p>
               </div>
           </div>
-          <div className='overflow-x-auto bg-white rounded-2xl shadow-sm border'>
-            <div className='flex justify-between p-4 border-b'>
-              <div className='flex gap-2'>
-                  <button onClick={() => setFilter('all')} className='px-3 py-1 text-xs font-bold uppercase rounded border'>All Matches</button>
-                  <button onClick={() => setFilter('mismatches')} className='px-3 py-1 text-xs font-bold uppercase rounded border'>Mismatches</button>
-                  <button onClick={() => setFilter('bank')} className='px-3 py-1 text-xs font-bold uppercase rounded border'>Bank Statements</button>
+          <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+            <div className="flex justify-between p-4 border-b">
+              <div className="flex gap-2">
+                  <button onClick={() => setFilter('all')} className="px-3 py-1 text-xs font-bold uppercase rounded border">All</button>
+                  <button onClick={() => setFilter('mismatches')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Mismatches</button>
+                  <button onClick={() => setFilter('bank')} className="px-3 py-1 text-xs font-bold uppercase rounded border">Bank</button>
               </div>
-              <button onClick={exportReport} className='px-3 py-1 text-xs font-bold uppercase rounded border'>Export Report</button>
+              <button onClick={exportReport} className="px-3 py-1 text-xs font-bold uppercase rounded border">Export</button>
             </div>
-            <table className='w-full text-sm text-left'>
-              <thead className='text-xs text-slate-700 uppercase bg-slate-50 border-b'>
+            <table className="w-full text-xs text-left">
+              <thead className="text-slate-700 uppercase bg-slate-50 border-b">
                 <tr>
-                  <th className='px-6 py-3'>Date</th>
-                  <th className='px-6 py-3'>Description</th>
-                  <th className='px-6 py-3'>Amount</th>
-                  <th className='px-6 py-3'>Type</th>
-                  <th className='px-6 py-3'>Actions</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Items</th>
+                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Balance</th>
+                  <th className="px-4 py-3">Channel</th>
                 </tr>
               </thead>
               <tbody>
                 {processedData.map((row: any, i: number) => (
-                  <tr key={i} className='border-b hover:bg-slate-50'>
-                    <td className='px-6 py-4'>{new Date(row.date).toLocaleDateString()}</td>
-                    <td className='px-6 py-4'>{row.description}</td>
-                    <td className='px-6 py-4'>{row.amount.toLocaleString()}</td>
-                    <td className='px-6 py-4'>{row.type}</td>
-                    <td className='px-6 py-4 flex gap-2'>
-                      <button className='text-indigo-500 font-bold'>Match</button>
-                      <button className='text-slate-400 font-bold'>Ignore</button>
-                    </td>
+                  <tr key={i} className="border-b hover:bg-slate-50">
+                    <td className="px-4 py-3">{new Date(row.date).toLocaleDateString()}</td>
+                    <td className="px-4 py-3">{row.time || 'N/A'}</td>
+                    <td className="px-4 py-3">{row.items || 'N/A'}</td>
+                    <td className="px-4 py-3">{row.amount.toLocaleString()}</td>
+                    <td className="px-4 py-3">{row.balance || 'N/A'}</td>
+                    <td className="px-4 py-3">{row.channel || 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>
