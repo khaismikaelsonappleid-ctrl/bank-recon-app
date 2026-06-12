@@ -7,12 +7,12 @@ export const dictionary = {
     balance: 'Balance',
     channel: 'Channel',
   },
-  fr: {
-    date: 'Date',
-    time: 'Heure',
-    items: 'Articles',
-    amount: 'Montant',
-    balance: 'Solde',
-    channel: 'Canal',
+  th: {
+    date: 'วันที่',
+    time: 'เวลา',
+    items: 'รายการ',
+    amount: 'จำนวนเงิน',
+    balance: 'ยอดคงเหลือ',
+    channel: 'ช่องทาง',
   },
 };
