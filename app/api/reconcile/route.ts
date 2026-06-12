@@ -85,8 +85,7 @@ function parseDate(dateStr: any): Date | null {
 
 function parseThaiBankPDF(text: string, fileName: string): Transaction[] {
   const transactions: Transaction[] = [];
-  text.split('
-').forEach((line, index) => {
+  text.split('\n').forEach((line, index) => {
     // Look for DD/MM/YY or DD/MM/YYYY
     const dateMatch = line.match(/(\d{2})[\/.-](\d{2})[\/.-](\d{2,4})/);
     const amountMatch = line.match(/(\d{1,3}(,\d{3})*(\.\d{2}))/);
